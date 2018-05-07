@@ -1,0 +1,54 @@
+- name: installing basic config on remote hosts
+  hosts: all
+  become: yes
+  tasks:
+  - name: install red hat updates first
+    command: yum update -y
+  - name: install yum-utils
+    yum: name=yum-utils state=installed
+  - name: get the required rpm file
+    get_url:
+          url: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+          dest: /home/ec2-user
+  - name: install rpm file
+    yum:
+       pkg: /home/ec2-user/epel-release-latest-7.noarch.rpm
+       state: present
+  - name: run the below commands
+    command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  - name: download selinux in remote hosts
+    get_url:
+         url: http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.33-1.git86f33cd.el7.noarch.rpm
+         dest: /home/ec2-user
+  - name: install selinux rpm
+    yum:
+      pkg: /home/ec2-user/container-selinux-2.33-1.git86f33cd.el7.noarch.rpm
+      state: present
+  - name: install docker on remote hosts
+    yum: name=docker-ce state=installed
+  - name: start the docker on remote hosts
+    command: systemctl start docker
+  - name: pull the docker image from docker hub
+    command: docker pull tomcat
+  - name: run the status command on hosts
+    uri: url=http://{{ ansible_host }}:8030/webapp/
+    register: result
+    ignore_errors: True
+  - name: remove forcefully if image is down
+    command: docker rm -f tomcat
+    when: result is failed
+  - name: run the tomcat image
+    command: docker run --name tomcat -p 8030:8080 -d -it tomcat
+    when: result is failed
+  - name: create jenkins war folder in remote dir
+    file: path=/sites/jenkins state=directory
+  - name: copy war to remote location first
+    copy:
+     src: /var/lib/jenkins/jobs/maven-project/workspace/webapp/target/webapp.war
+     dest: /sites/jenkins
+  - name: copy war to tomcat server
+    command: docker cp /sites/jenkins/webapp.war tomcat:/usr/local/tomcat/webapps
+  - name: stop the container to refesh code
+    command: docker stop tomcat
+  - name: start with update code
+    command: docker start tomcat

@@ -1,0 +1,19 @@
+- name: installing jenkins in localhost
+  hosts: localhost
+  become: yes
+  tasks:
+  - name: download repo url and copy to local
+    get_url:
+        url: http://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+        mode: 0440
+  - name: get the key file
+    rpm_key:
+     key: http://pkg.jenkins.io/redhat-stable/jenkins.io.key
+     state: present
+  - name: install jenkins in localhost
+    yum: name=jenkins state=installed
+    register: result
+  - name: start jenkins if result is success
+    service: name=jenkins state=started
+    when: result is success
