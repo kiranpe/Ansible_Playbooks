@@ -1,0 +1,7 @@
+- hosts: dockerservers
+  become: yes
+  tasks:
+   - name: get ec2 facts
+     ec2_metadata_facts:
+
+   - debug: var=ansible_ec2_instance_id

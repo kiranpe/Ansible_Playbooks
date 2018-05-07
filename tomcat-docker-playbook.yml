@@ -1,0 +1,16 @@
+- name: setting up tomcat using docker on remote hosts
+  hosts: dockerservers
+  become: yes
+  tasks:
+  - name: pull the docker image from docker hub
+    command: docker pull tomcat
+  - name: run the tomcat image
+    command: docker run --name tomcat -p 8030:8080 -d -it tomcat
+  - name: create jenkins war folder in remote dir
+    file: path=/sites/jenkins state=directory
+  - name: copy war to remote location first
+    copy:
+      src: /var/lib/jenkins/workspace/maven-project/webapp/target/webapp.war
+      dest: /sites/jenkins 
+  - name: copy war to tomcat server
+    command: docker cp /sites/jenkins/webapp.war tomcat:/usr/local/tomcat/webapps 

@@ -1,0 +1,27 @@
+- hosts: docker
+  become: yes
+  tasks:
+  - name: install yum-utils
+    yum: name=yum-utils state=installed
+  - name: get the required rpm file
+    get_url:
+          url: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+          dest: /home/ec2-user
+  - name: install rpm file
+    yum:
+       pkg: /home/ec2-user/epel-release-latest-7.noarch.rpm
+       state: present
+  - name: run the below commands
+    command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  - name: download selinux in remote hosts
+    get_url:
+         url: http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.33-1.git86f33cd.el7.noarch.rpm
+         dest: /home/ec2-user
+  - name: install selinux rpm
+    yum:
+      pkg: /home/ec2-user/container-selinux-2.33-1.git86f33cd.el7.noarch.rpm
+      state: present
+  - name: install docker on remote hosts
+    yum: name=docker-ce state=installed
+  - name: start the docker on remote hosts
+    command: systemctl start docker

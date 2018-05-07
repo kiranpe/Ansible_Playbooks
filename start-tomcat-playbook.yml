@@ -1,0 +1,14 @@
+- name: get the status ot nginx
+  hosts: dockerservers
+  become: yes
+  tasks:
+  - name: run the status command on hosts
+    uri: url=http://{{ ansible_host }}:{{ tomcat_port }}/webapp/
+    register: result
+    ignore_errors: True
+  - debug: msg="Status of the url {{ result.status }}"
+    when: result.status == 200
+  - name: start nginx server
+    command: docker start tomcat
+    when: result is failed
+

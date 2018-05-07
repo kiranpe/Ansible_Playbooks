@@ -1,0 +1,13 @@
+- name: get the status ot nginx
+  hosts: localhost
+  become: yes
+  tasks:
+  - name: run the status command on hosts
+    uri: url=http://{{ ansible_host }}:8090
+    register: result
+    ignore_errors: True
+  - debug: msg="Status of the url {{ result.status }}"
+    when: result.status == 200
+  - name: start nginx server
+    command: docker start nginx 
+    when: result is failed

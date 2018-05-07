@@ -1,0 +1,16 @@
+- hosts: dockerservers
+  sudo: yes
+  tasks:
+  - name: install httpd
+    yum: name=httpd state=present
+  - name: start httpd
+    service: name=httpd state=started
+  - name: copying index file to apache
+    copy:
+      src: /sites/index.html
+      dest: /var/www/html/index.html
+      owner: ec2-user
+      group: ec2-user
+      mode: 0644
+  - name: restart apache
+    service: name=httpd state=restarted

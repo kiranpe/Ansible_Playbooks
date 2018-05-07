@@ -1,0 +1,9 @@
+- hosts: dockerservers
+  become: yes
+  tasks:
+  - name: remove sample folder
+    file: path=/sites/Docker/nginxserver state=absent
+  - name: login user
+    command: id -un  
+    register: login
+  - debug: msg="Logged in user {{ login.stdout }}"

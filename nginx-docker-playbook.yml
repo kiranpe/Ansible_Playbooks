@@ -1,0 +1,29 @@
+- hosts: target1
+  become: yes
+  tasks:
+  - name: create docker folder in remote hosts
+    file: path=/sites/Docker/nginx state=directory
+  - name: copy docker file to hosts
+    copy:
+      src: /sites/Ansible/Docker/Dockerfile 
+      dest: /sites/Docker/nginx
+  - name: copy index file
+    copy:
+      src: /sites/Ansible/index.html
+      dest: /sites/Docker/nginx
+  - name: build docker image
+    command: docker build -t nginx /sites/Docker/nginx
+  - name: stop the nginx server
+    command: docker stop nginx
+    register: result
+  - debug: msg="Stopped Docker ID {{ result.stdout }}"
+  - name: remove old nginx server
+    command: docker rm nginx
+    register: result
+  - debug: msg="Removed Docker ID {{ result.stdout }}"
+  - name: start new nginx server
+    command: docker run --name nginx -p {{ nginx_port }}:{{ http_port }} -v /sites/Docker/nginx:/usr/share/nginx/html/ -d -it nginx
+  - name: get the status 
+    uri: url=http://{{ ansible_host }}:{{ nginx_port }}
+    register: result
+  - debug: msg="Print the status {{ result.status }}"
