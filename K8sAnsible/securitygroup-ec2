@@ -1,0 +1,11 @@
+HTTP TCP 80 and 443 0.0.0.0/0,::/0
+
+SSH TCP 22 0.0.0.0/0,::/0
+
+Custom TCP Rule TCP 30000 - 32767 0.0.0.0/0,::/0
+
+All traffic All All 0.0.0.0/0,::/0  --> for dashboard
+
+Custom TCP Rule TCP 6000 - 9000 0.0.0.0/0,::/0
+
+All ICMP - IPv4 All N/A 0.0.0.0/0,::/0

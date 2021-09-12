@@ -1,0 +1,79 @@
+- name: generating token
+  hosts: masternode
+  tasks:
+   - name: "Cluster token"
+     shell: kubeadm token list | cut -d ' ' -f1 | sed -n '2p'
+     register: K8S_TOKEN
+   - name: "CA Hash"
+     shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+     register: K8S_MASTER_CA_HASH
+   - name: "IP and Port"
+     shell: cat $HOME/.kube/config  | grep server | awk -F"//" '{print $2}'
+     register: K8S_MASTER_IP_PORT
+   - name: "Add K8S Token Hash and IP to dummy host"
+     add_host:
+       name:   "K8S_TOKEN_HOLDER"
+       token:  "{{ K8S_TOKEN.stdout }}"
+       hash:   "{{ K8S_MASTER_CA_HASH.stdout }}"
+       ip:     "{{ K8S_MASTER_IP_PORT.stdout }}"
+   - debug:
+       msg: "[Master] K8S_TOKEN_HOLDER K8S token is {{ hostvars['K8S_TOKEN_HOLDER']['token'] }}"
+   - debug:
+       msg: "[Master] K8S_TOKEN_HOLDER K8S Hash is  {{ hostvars['K8S_TOKEN_HOLDER']['hash'] }}"
+   - debug:
+       msg: "[Master] K8S_TOKEN_HOLDER K8S IP and PORT is {{ hostvars['K8S_TOKEN_HOLDER']['ip'] }}"
+- name: installing k8s and joining worker node with master
+  hosts: workernodes
+  become: yes
+  tasks:
+   - name: Add Docker's official GPG key
+     apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+   - name: add stable docker repo
+     apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+      state: present
+   - name: add k8s key value
+     apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+   - name: add k8s stable repo
+     apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      filename: /etc/apt/sources.list.d/kubernetes
+      state: present
+   - name: install docker kubectl kubelet and kubeadm
+     shell: apt-get update && apt-get install -y docker-ce=18.06.1~ce~3-0~ubuntu kubelet=1.13.5-00 kubeadm=1.13.5-00 kubectl=1.13.5-00 && apt-mark hold docker-ce kubelet kubeadm kubectl
+     args:
+        warn: no
+   - name: add ubuntu user to docker group
+     shell: usermod -aG docker $USER
+   - name: Enable iptables bridge call
+     shell: echo "net.bridge.bridge-nf-call-iptables=1" | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+     register: result
+   - debug: msg={{ result.stdout }}
+   - name: Change hostname for our better understanging 
+     shell: hostnamectl set-hostname worker-node1
+     register: result
+   - debug: msg={{ result.stdout }}
+   - debug:
+      msg: "[Worker] K8S_TOKEN_HOLDER K8S token is {{ hostvars['K8S_TOKEN_HOLDER']['token'] }}"
+   - debug:
+      msg: "[Worker] K8S_TOKEN_HOLDER K8S Hash is  {{ hostvars['K8S_TOKEN_HOLDER']['hash'] }}"
+   - debug:
+      msg: "[Worker] K8S_TOKEN_HOLDER K8S IP and PORT is {{ hostvars['K8S_TOKEN_HOLDER']['ip'] }}"
+   - name: "Kubeadmn join"
+     shell: sudo kubeadm join {{ hostvars['K8S_TOKEN_HOLDER']['ip'] }} --token {{ hostvars['K8S_TOKEN_HOLDER']['token'] }} --discovery-token-ca-cert-hash sha256:{{ hostvars['K8S_TOKEN_HOLDER']['hash'] }}
+     args:
+        warn: no
+   - pause:
+         seconds: 30
+- name: Checking nodes on master
+  hosts: masternode
+  become: false
+  tasks:
+   - name: Check nodes
+     shell: kubectl get nodes
+     register: result
+   - debug: msg={{ result.stdout }}

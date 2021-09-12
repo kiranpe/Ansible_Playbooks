@@ -1,0 +1,5 @@
+[workernodes]
+18.219.250.55 ansible_user=ubuntu ansible_ssh_private_key_file=./<your pem file> ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+[masternode]
+3.15.216.228 ansible_user=ubuntu ansible_ssh_private_key_file=./<your pem file> ansible_ssh_common_args='-o StrictHostKeyChecking=no'
