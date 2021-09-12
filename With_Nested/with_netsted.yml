@@ -1,0 +1,25 @@
+- name: Create multiple users and folders inside users and create pdf files insidde folders
+  hosts: remotehost
+  become: yes
+  gather_facts: false
+  
+  vars:
+   - users : [user1, user2, user3, user4, user5]
+   - folders: [Lab1, Lab2, Lab3, Lab4, Lab5, Lab6]
+
+  tasks:
+    - name: Create Folders inside users
+      file:
+       path: "/home/{{ item[0] }}/{{ item[1] }}"
+       state: directory
+      with_nested:
+        - "{{ users }}"
+        - "{{ folders }}"
+
+    - name: Create pdf files inside each folder
+      file:
+       path: "/home/{{ item[0] }}/{{ item[1] }}/{{ item[1] }}.pdf"
+       state: touch
+      with_nested:
+       - "{{ users }}"
+       - "{{ folders }}"

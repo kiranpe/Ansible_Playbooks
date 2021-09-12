@@ -1,0 +1,13 @@
+- name: build image and run jenkins container
+  hosts: localhost
+  become: no
+  
+  tasks:
+  - name: run docker image
+    shell: docker run -it --name jenkins-blueocean --rm --detach --network jenkins --env DOCKER_HOST=tcp://docker:2376 --env DOCKER_CERT_PATH=/certs/client --env DOCKER_TLS_VERIFY=1 -p 8080:8080 -p 50000:50000 -v /opt/Ansible/Jenkins/jenkins-data:/var/jenkins_home -v /opt/Ansible/Jenkins/jenkins-docker-certs:/certs/client:ro jenkins:1.0 
+
+  - name: check container status
+    shell: docker ps  | grep jenkins
+    register: result
+    
+  - debug: msg={{ result.stdout }}

@@ -1,0 +1,17 @@
+- name: stop and remove nginx container and image
+  hosts: localhost
+  become: no
+  gather_facts: no
+  
+  tasks:
+  - name: stop running nginx container
+    shell: docker stop frontend
+ 
+  - name: remove nginx container
+    shell: docker rm frontend
+
+  - name: remove nginx image
+    shell: docker rmi nginx
+
+  - name: check images
+    shell: docker image

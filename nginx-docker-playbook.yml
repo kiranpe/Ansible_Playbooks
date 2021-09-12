@@ -1,4 +1,4 @@
-- hosts: target1
+- hosts: dockerhost
   become: yes
   tasks:
   - name: create docker folder in remote hosts

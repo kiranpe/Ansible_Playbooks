@@ -1,0 +1,12 @@
+- name: Checking folders inside users
+  hosts: remotehost
+  become: no
+  gather_facts: no
+ 
+  tasks:
+   - name: check the status
+     command: tree /home
+     register: result
+     changed_when: false
+
+   - debug: var=result.stdout_lines

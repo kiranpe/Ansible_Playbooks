@@ -1,0 +1,2 @@
+[remotehost]
+ubuntu@40.117.214.188 ansible_ssh_common_args='-o StrictHostKeyChecking=no'

@@ -1,0 +1,23 @@
+- name: pull nginx image and run the container
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  tasks:
+  - name: pull nginx docker image
+    shell: docker pull nginx
+
+  - name: run nginx container
+    shell: docker run -it --name frontend -p 80:80 -d nginx
+    
+  - name: check container status
+    shell: docker ps | grep frontend
+    register: result
+    
+  - debug: msg={{ result.stdout }}
+
+  - name: check images
+    shell: docker images | grep nginx
+    register: result
+  
+  - debug: msg={{ result.stdout }}

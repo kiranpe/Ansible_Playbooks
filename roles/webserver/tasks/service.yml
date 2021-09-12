@@ -1,0 +1,13 @@
+   - name: start apache service
+     service: name=apache2 state=started
+
+   - name: test apache service
+     command: curl http://localhost
+     args:
+      warn: false
+     register: result
+     notify:
+      - stop apache service
+      - clean apache service
+
+   - debug: msg={{ result.stdout }}

@@ -1,0 +1,10 @@
+   - name: stop apache service
+     service:
+       name: apache2
+       state: stopped
+     when: result is succeeded
+
+   - name: clean apache service
+     apt:
+      name: apache2
+      state: absent

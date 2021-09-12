@@ -1,0 +1,50 @@
+- name: create users and groups
+  hosts: remotehost
+  become: yes
+  gather_facts: no
+
+  vars:
+   - group_names: [students, wheel, operator]
+   - users: [user1, user2, user3, user4, user5]
+   - folders: [Lab1, Lab2, Lab3, Lab4, Lab5, Lab6]
+
+  tasks:
+   - name: Copy SSH key 
+     authorized_key:
+      user: ubuntu
+      state: present
+      key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+   - name: Create Groups
+     group:
+      name: "{{ item }}"
+      state: present
+     with_items:
+      - "{{ group_names }}"
+
+   - name: Create Users
+     user:
+      name: "{{ item }}"
+      groups: "{{ group_names }}"
+      shell: /bin/csh
+      state: present
+     with_items:
+       - "{{ users }}"
+  
+   - name: Create Folders inside users
+     file:
+      path: "/home/{{ item[0] }}/{{ item[1] }}"
+      state: directory
+      mode: 0755
+     with_nested:
+      - "{{ users }}"
+      - "{{ folders }}" 
+
+   - name: Create pdf files inside Lab folders
+     file:
+      path: "/home/{{ item[0] }}/{{ item[1] }}/{{ item[1]}}.pdf"
+      state: touch
+      mode: 0755
+     with_nested:
+       - "{{ users }}"
+       - "{{ folders }}"

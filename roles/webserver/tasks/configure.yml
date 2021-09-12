@@ -1,0 +1,5 @@
+  - name: copy index file to apache www folder
+    copy:
+     src: files/index.html
+     dest: /var/www/html
+     mode: 0755
