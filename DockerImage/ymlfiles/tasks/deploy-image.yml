@@ -1,0 +1,65 @@
+     - name: Getting target ip
+       shell: sed -n '/k8sworker]/,/k8smaster]/p' /sites/scripts/hosts | sed '1d;$d' | awk '{print $1}'
+       args:
+         warn: no
+       register: targetip
+
+     - debug: msg={{ targetip.stdout }}
+
+     - set_fact: target_ip="{{ targetip.stdout | replace('\n', ' ') }}"
+
+     - name: run deploy command on masternode
+       command: kubectl run casestudy --image=kiranp23/devopscasestudy:latest --replicas=1 -n com-att-oce-test
+
+     - name: expose deployment to external ip
+       shell: |
+             for i in {{ target_ip }}
+             do
+               j=$(echo "$i" | cut -d '.' -f1)
+               kubectl expose deploy casestudy --external-ip="${i}" --port=7010 --target-port=8080 --type=NodePort --name=my-service-${j} -n com-att-oce-test
+             done
+
+     - name: get pod details
+       shell: kubectl get po -n com-att-oce-test | grep casestudy | grep -iv Terminating | awk '{print $1}' | head -1
+       register: result
+
+     - debug: msg={{ result.stdout }}
+
+     - set_fact: pod={{ result.stdout }}
+
+     - name: getting pod log and searching string
+       shell: |
+          until $(kubectl logs {{ pod }} -n com-att-oce-test >> /sites/logs/pod.log && grep "Server startup" /sites/logs/pod.log > /dev/null); do
+           printf "Pod is coming up\n"
+           sleep 10
+          done
+       register: result
+
+     - debug: msg="Pod is up and running"
+
+     - name: print out search string from log
+       shell: grep "Server startup" /sites/logs/pod.log
+       register: result
+
+     - debug: msg={{ result.stdout }}
+
+     - debug:
+           msg: "Server is up and running.. run health check"
+
+     - name: removing the log file
+       file:
+         path: /sites/logs/pod.log
+         state: absent
+
+     - name: get the nodeport
+       shell: |
+           for i in {{ target_ip }}
+           do
+            j=$(echo "$i" | cut -d '.' -f1)
+            kubectl describe svc my-service-${j} -n com-att-oce-test | grep "NodePort:" | awk -F">" '{print $2}' | awk -F"/" '{print $1}' | sed -e 's/^[ \t]*//'
+           done
+       register: node_port
+
+     - debug: msg={{ node_port.stdout }}
+
+     - set_fact: nodeport="{{ node_port.stdout | replace('\n', ' ') }}"

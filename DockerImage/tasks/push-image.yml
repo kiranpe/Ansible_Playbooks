@@ -1,0 +1,19 @@
+    - name: pushing image to docker
+      command: docker push kiranp23/webapp:latest
+      args:
+         warn: no
+
+    - name:  stopping container
+      command: docker stop casestudy
+      args:
+         warn: no
+
+    - name: removing container
+      command: docker rm casestudy
+      args:
+         warn: no
+
+    - name: removing image from local
+      command: docker rmi kiranp23/webapp:latest
+      args:
+         warn: no

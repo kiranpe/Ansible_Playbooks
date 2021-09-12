@@ -1,0 +1,7 @@
+- name: deploy casestudy from master node
+  hosts: k8smaster
+
+  tasks:
+  - include: tasks/k8s-ns.yml
+  - include: tasks/deploy-image.yml
+  - include: tasks/healthcheck.yml

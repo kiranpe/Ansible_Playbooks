@@ -1,0 +1,14 @@
+- name: building image and checking health of url
+  hosts: localhost
+  become: yes
+  
+  vars:
+   hub_username: "docker_user"
+   hub_password: "docker_pass"
+
+  tasks:
+  - include: tasks/docker-login.yml
+  - include: tasks/image-check.yml
+  - include: tasks/build-docker-image.yml
+  - include: tasks/check-status.yml
+  - include: tasks/push-image.yml

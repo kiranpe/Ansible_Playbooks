@@ -1,0 +1,39 @@
+     - name: create script directory
+       file:
+         path: /sites/scripts
+         state: directory
+         owner: ubuntu
+         group: ubuntu
+         mode: '0777'
+       become: yes
+
+     - name: create directoy for logs
+       file:
+         path: /sites/logs
+         state: directory
+         owner: ubuntu
+         group: ubuntu
+         mode: '0777'
+       become: yes
+
+     - name: copy host file
+       copy: src=hosts dest=/sites/scripts mode=0777
+
+     - name: copy ns script to master node
+       copy: src=check_ns.sh dest=/sites/scripts mode=0777
+
+     - name: run ns script
+       shell: sh /sites/scripts/check_ns.sh
+       register: output
+
+     - debug: msg={{ output.stdout }}
+
+     - name: copy the svc and deploy script
+       copy: src=check_svc_deploy.sh dest=/sites/scripts mode=0777
+
+     - name: instead of deleting ns every time just delete svc and deploy
+       shell: sh /sites/scripts/check_svc_deploy.sh
+       register: output
+
+     - debug: msg={{ output.stdout }}
+

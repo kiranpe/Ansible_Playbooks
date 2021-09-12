@@ -1,0 +1,10 @@
+    - name: Log in to Docker Hub
+      docker_login:
+        username: "{{ hub_username }}"
+        password: "{{ hub_password }}"
+        reauthorize: yes
+      register: login_results
+      become: yes
+
+    - debug:
+        var: login_results

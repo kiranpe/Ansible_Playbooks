@@ -1,0 +1,29 @@
+     - name: doing health check for one nodeport
+       shell: echo {{ nodeport }} | awk '{print $1}'
+       register: result
+
+     - set_fact: port={{ result.stdout }}
+
+     - name: master node public ip
+       shell: curl http://169.254.169.254/latest/meta-data/public-ipv4
+       args:
+         warn: no
+       register: result
+
+     - set_fact: public_ip={{ result.stdout }}
+
+     - name: Run Health Check
+       uri: url=http://{{ public_ip }}:{{ port }}/casestudy/login.html
+       register: result
+
+     - debug: msg="Url Status is {{ result.status }}"
+
+     - name: Health Check Url
+       debug:
+        var: result.url
+
+     - name: Running pods
+       command: kubectl get po -n com-att-oce-test -o wide
+       register: result
+
+     - debug: msg="{{ result.stdout | replace('\n', ' ') }}"

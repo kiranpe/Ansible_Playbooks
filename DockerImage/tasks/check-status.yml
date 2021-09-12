@@ -1,0 +1,31 @@
+    - name: Get the external ip
+      command: curl http://169.254.169.254/latest/meta-data/public-ipv4
+      args:
+        warn: false
+      register: result
+
+    - debug: msg={{ result.stdout }}
+
+    - set_fact: external_ip={{ result.stdout }}
+
+    - name: check container is up or not
+      shell: |
+          until $(curl -kIs http://{{ external_ip }}:7010/webapp/login.html >> /sites/logs/image.log && grep 200 /sites/logs/image.log > /dev/null); do
+           printf "Container is not up..Checking again.."
+           sleep 5
+          done
+      register: result
+
+    - debug: msg="Container is Up.. Checking Url Status.."
+
+    - name: Checking url status.. wait for 200
+      uri: url=http://{{ external_ip }}:7010/webapp/login.html
+      register: result
+      until: result.status == 200
+      retries: 5
+      delay: 5
+
+    - debug: msg="Url staus is {{ result.status }}"
+
+    - name: image status
+      shell: echo "image is good.. we can push to docker hub"
