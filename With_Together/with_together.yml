@@ -1,0 +1,25 @@
+- name: var tester
+  hosts: 127.0.0.1
+  gather_facts: no
+
+  vars:
+   app: [ "myapp01", "myapp02" ]
+   datastores_transient: 
+    - SmallTempDatastoreForProcessing
+    - SmallTempDatastoreForLogs
+    - SmallTempDatastoreForContainerRoot
+   datastores_persisted: [ "BigDatastoreForUserGeneratedContent", "MediumDatastoreForCMSData", "BigDatastoreForReports", "MediumDatastoreForFiles", "SmallDatastoreForFiles" ]
+   
+
+  tasks:
+  - name: debug
+    debug:
+      msg: "{{ item.0.name }} has a persisted datastore named: {{ item[1] }}"
+    with_together:
+    - [ { name: "{{ app[0] }}", datastores_transient: "{{ datastores_transient }}" },
+        { name: "{{ app[0] }}", datastores_transient: "{{ datastores_transient }}" },
+        { name: "{{ app[1] }}", datastores_transient: "{{ datastores_transient }}" },
+        { name: "{{ app[1] }}", datastores_transient: "{{ datastores_transient }}" },
+        { name: "{{ app[1] }}", datastores_transient: "{{ datastores_transient }}" } ]
+
+    - [ "{{ datastores_persisted[0] }}", "{{ datastores_persisted[1] }}", "{{ datastores_persisted[2] }}", "{{ datastores_persisted[3] }}", "{{ datastores_persisted[4] }}" ]
