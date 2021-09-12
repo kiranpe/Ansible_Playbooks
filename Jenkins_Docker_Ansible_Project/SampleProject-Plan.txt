@@ -1,0 +1,38 @@
+--> create keypair and security group in AWS - terraform
+
+--> create jenkins, dev, prod instances in AWS - terraform
+
+--> install docker on jenkins, dev and prod server - ansible
+
+--> create a project repo with master and release branch - git
+
+--> checkout the empty repo to local - git
+
+--> create jenkins file with dev and prod server choices and yml files in local - git
+
+--> create dockerfile with simple apache image and simple index.html file - docker
+
+--> commit the code to release branch - git 
+
+--> create dev build with release branch and jenkins file - jenkins
+
+--> run the build with release branch - git + jenkins + ansible
+
+--> check the image status on jenkins server first - shellscript + jenkins + docker + ansible
+
+--> if image is clean then push that image to docker hib - docker
+
+--> then pull the image and deploy container on dev server - shellscript + jenkins + docker + ansible
+      
+--> test the application url on dev server - jenkins + ansible
+       
+--> on dev build success megre the code to master - git
+       
+--> run the prod build and push code to prod server - shellscript + git + jenkins + docker + ansible
+
+
+#This project is complete.. Code is available in below repo's
+
+--> Infra Automation: https://github.com/kiranpe/SampleProjectTerraform.git
+
+--> Deployment Automation: https://github.com/kiranpe/SampleProject.git

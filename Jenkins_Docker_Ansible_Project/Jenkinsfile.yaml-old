@@ -1,0 +1,44 @@
+pipeline:
+   agent:
+     any:
+     
+   environment:
+    DOCKER_REGISTRY: 'http://registry-1.docker.io'
+    CONTAINER: 'apache'
+    VERSION: "1.${BUILD_NUMBER}"
+    PROD_VERSION: "latest"
+   
+   parameters:
+   - "choice choices: ['devserver', 'prodserver'], description: '', name: 'DEPLOY_TO'"
+   
+   stages:
+   - stage: Checkout
+     steps:
+     - git 'https://github.com/kiranpe/SampleProject.git'
+    
+   - stage: Clean Old Docker Images
+     steps:
+     - sh "docker system prune -a -f"
+     
+   - stage: Build docker Image
+     when:
+     - branch 'master'
+     steps:
+      script:
+      - docker.build("${CONTAINER}:${PROD_VERSION}")
+    
+   - stage: Build Release Image 
+     when:
+     - branch 'release'
+     steps:
+      script:
+      - docker.build("${CONTAINER}:${VERSION}")
+    
+   - stage: Checking to stop old containers
+     steps:
+     - sh """sh ${WORKSPACE}/check-image.sh"""
+     
+   - stage: Run the container and Check the url staus
+     steps:
+     - sh """ansible-playbook ${WORKSPACE}/image-status.yml -e image_version='${env.PROD_VERSION}'"""
+     

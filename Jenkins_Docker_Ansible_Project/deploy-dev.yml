@@ -1,0 +1,57 @@
+- name: checking image status
+  hosts: devserver
+  become: yes
+  gather_facts: no
+
+  tasks:
+  - name: login to docker hub
+    docker_login:
+     username: "{{ hub_user }}"
+     password: "{{ hub_pass }}"
+     reauthorize: yes
+    register: login_results
+
+  - debug:
+        var: login_results
+  
+  - name: copy image check script
+    copy:
+     src: check-image.sh
+     dest: /home/ubuntu
+     owner: ubuntu
+     group: ubuntu
+     mode: '0755'
+
+  - name: remove if old container is up
+    shell: sh /home/ubuntu/check-image.sh
+
+  - name: pull apache image
+    shell: docker pull kiranp23/apache:"{{ image_version }}"
+  
+  - name: run the docker image
+    shell: docker run -it -p 7010:80 --name apache -d kiranp23/apache:"{{ image_version }}"
+  
+  - name: get the ip address
+    shell: curl http://169.254.169.254/latest/meta-data/public-ipv4
+    register: result
+  
+  - set_fact: ip_address={{ result.stdout }}
+
+  - name: pause for 20 seconds
+    pause: 
+     seconds: 20
+
+  - name: check health of the url
+    uri: url=http://{{ ip_address }}:7010
+    register: result
+    until: result.status == 200
+
+  - debug: msg="Url staus is {{ result.status }}"
+ 
+  - name: check image exists or not
+    shell: docker ps | grep apache
+    register: result
+
+  - name: if image is runing
+    shell: docker stop apache && docker rm apache
+    when: result is succeeded

@@ -1,0 +1,29 @@
+--> created keypair and security group in AWS - terraform - files are in SampleProjectTerraform repo
+
+--> create jenkins, dev, prod instances in AWS - terraform - files are in SampleProjectTerraform repo
+
+--> install docker on jenkins, dev and prod server - ansible - files are in SampleProjectTerraform repo
+
+#SampleProjectTerraform: https://github.com/kiranpe/SampleProjectTerraform.git
+
+--> create a project repo with master and release branch - git - creates SampleProject in git
+
+--> checkout the empty repo to local - git 
+
+--> create jenkins file with dev and prod server choices and yml files in local - git - files are in SampleProject git repo
+
+--> commit the code to release branch - git - files are in release branch
+
+--> create dev build with parametes - jenkins - files are in release branch
+
+--> run the build with release branch - git + jenkins + ansible - jeckins set up is in README file
+
+--> check the image status on jenkins server first - shellscript + jenkins + ansible - Jenkins file do this autimatically if everthing is fine
+
+--> on success deploy container to dev server - shellscript + jenkins + ansible - script is in repo and rest ansible files
+      
+--> test the application url in dev server - jenkins + ansible - this is in yml files
+       
+--> on dev build success megre the code to master - git
+       
+--> run the prod build and push code to prod server - shellscript + git + jenkins + ansible - if dev set up is fine then prod will be fine with out any changes

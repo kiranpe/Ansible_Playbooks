@@ -1,0 +1,10 @@
+- name: push ssh key to dev and prod servers
+  hosts: prodserver:devserver
+  gather_facts: no
+  
+  tasks:
+  - name: pushing ssh to dev and prod for key less login
+    authorized_key:
+      user: ubuntu
+      state: present
+      key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
